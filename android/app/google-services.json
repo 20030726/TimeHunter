@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "969853373996",
+    "project_id": "timehunter-c904e",
+    "storage_bucket": "timehunter-c904e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:969853373996:android:3c38a3f7e7f454abdf8b89",
+        "android_client_info": {
+          "package_name": "com.mika.timehunter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD4FXq7oAm8BWgddcvLYZo7pqM7Jxisgvc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

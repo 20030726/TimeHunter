@@ -1,0 +1,6 @@
+{
+    "geminicodeassist.rules": "Please strictly adhere to the guidelines and architecture definitions specified in ./ARCH_RULES.md for all code analysis, suggestions, and refactoring tasks.",
+    "geminicodeassist.agentYoloMode": true,
+    "geminicodeassist.agentDebugMode": true,
+    "geminicodeassist.verboseLogging": true
+}

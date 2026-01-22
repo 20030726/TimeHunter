@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId}/daily/{docId} {
+      allow read, write: if request.auth != null
+          && (request.auth.uid == 'CFAjBuCEaIX3BOfxrEeiUji4Frb2'
+              || request.auth.uid == 'Me4C7sZ4mXVsG3XdZN47O58htRk1');
+    }
+  }
+}
