@@ -94,7 +94,7 @@ class _RecordsPageState extends ConsumerState<RecordsPage>
       );
 
       if (goAdd == true && context.mounted) {
-        await showAddTaskDialog(context: context, ref: ref);
+        await showAddTaskDialog(context: context);
       }
       return;
     }

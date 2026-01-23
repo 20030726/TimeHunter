@@ -61,7 +61,7 @@ class _VariantHomePageState extends ConsumerState<VariantHomePage> {
   }
 
   Future<void> _showAddTaskDialog() async {
-    await showAddTaskDialog(context: context, ref: ref);
+    await showAddTaskDialog(context: context);
   }
 
   void _startTask(TaskItem task, HuntVariant variant) {

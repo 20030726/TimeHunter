@@ -10,6 +10,8 @@ class TaskItem {
     required this.completedCycles,
     required this.cycleMinutes,
     this.backgroundMusic,
+    this.note,
+    this.plannedSourceId,
   });
 
   final String id;
@@ -19,6 +21,8 @@ class TaskItem {
   final int completedCycles;
   final int cycleMinutes;
   final String? backgroundMusic;
+  final String? note;
+  final String? plannedSourceId;
 
   TaskItem copyWith({
     String? title,
@@ -27,6 +31,8 @@ class TaskItem {
     int? completedCycles,
     int? cycleMinutes,
     String? backgroundMusic,
+    String? note,
+    String? plannedSourceId,
   }) {
     return TaskItem(
       id: id,
@@ -36,6 +42,8 @@ class TaskItem {
       completedCycles: completedCycles ?? this.completedCycles,
       cycleMinutes: cycleMinutes ?? this.cycleMinutes,
       backgroundMusic: backgroundMusic ?? this.backgroundMusic,
+      note: note ?? this.note,
+      plannedSourceId: plannedSourceId ?? this.plannedSourceId,
     );
   }
 
@@ -50,6 +58,8 @@ class TaskItem {
       'completedCycles': completedCycles,
       'cycleMinutes': cycleMinutes,
       'backgroundMusic': backgroundMusic,
+      'note': note,
+      'plannedSourceId': plannedSourceId,
     };
   }
 
@@ -64,6 +74,8 @@ class TaskItem {
       cycleMinutes: (json['cycleMinutes'] as num?)?.toInt() ??
           TimerConstants.defaultCycleMinutes,
       backgroundMusic: json['backgroundMusic'] as String?,
+      note: json['note'] as String?,
+      plannedSourceId: json['plannedSourceId'] as String?,
     );
   }
 }

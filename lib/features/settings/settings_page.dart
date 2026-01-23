@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/providers.dart';
 import '../showcase/variant_layouts.dart';
+import 'plan_reminder_controller.dart';
 import 'variant_settings_controller.dart';
 
 class SettingsPage extends ConsumerWidget {
@@ -11,6 +12,7 @@ class SettingsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final variantAsync = ref.watch(variantSettingsProvider);
+    final reminderAsync = ref.watch(planReminderProvider);
     final authState = ref.watch(authStateProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('設定')),
@@ -56,6 +58,81 @@ class SettingsPage extends ConsumerWidget {
                   ),
                 ),
               ),
+              const SizedBox(height: 20),
+              Text(
+                '明日規劃提醒',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 12),
+              reminderAsync.when(
+                loading: () => const Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        SizedBox(width: 12),
+                        Text('讀取提醒設定...'),
+                      ],
+                    ),
+                  ),
+                ),
+                error: (e, _) => Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text('提醒設定讀取失敗：$e'),
+                  ),
+                ),
+                data: (settings) {
+                  final timeLabel = settings.timeOfDay.format(context);
+                  return Card(
+                    child: Column(
+                      children: [
+                        SwitchListTile(
+                          value: settings.enabled,
+                          onChanged: (value) {
+                            ref
+                                .read(planReminderProvider.notifier)
+                                .setEnabled(value);
+                          },
+                          title: const Text('啟用提醒'),
+                          subtitle: const Text('晚上提醒你規劃明天任務'),
+                        ),
+                        const Divider(height: 1),
+                        ListTile(
+                          enabled: settings.enabled,
+                          leading: const Icon(Icons.notifications_outlined),
+                          title: const Text('提醒時間'),
+                          subtitle: Text(
+                            settings.enabled ? '每天提醒一次' : '已關閉',
+                          ),
+                          trailing: Text(timeLabel),
+                          onTap: settings.enabled
+                              ? () async {
+                                  final picked = await showTimePicker(
+                                    context: context,
+                                    initialTime: settings.timeOfDay,
+                                  );
+                                  if (picked == null) return;
+                                  await ref
+                                      .read(planReminderProvider.notifier)
+                                      .setTime(picked);
+                                }
+                              : null,
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 20),
               Text(
                 '主畫面風格',
                 style: Theme.of(context)

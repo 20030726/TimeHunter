@@ -7,6 +7,7 @@ class DailyData {
     required this.dateYmd,
     required this.slackUsed,
     required this.tasks,
+    this.dailyNote = '',
     this.timeboxes = const [],
     this.updatedAtEpochMs = 0,
   });
@@ -14,12 +15,14 @@ class DailyData {
   final String dateYmd;
   final int slackUsed;
   final List<TaskItem> tasks;
+  final String dailyNote;
   final List<TimeboxEntry> timeboxes;
   final int updatedAtEpochMs;
 
   DailyData copyWith({
     int? slackUsed,
     List<TaskItem>? tasks,
+    String? dailyNote,
     List<TimeboxEntry>? timeboxes,
     int? updatedAtEpochMs,
   }) {
@@ -27,6 +30,7 @@ class DailyData {
       dateYmd: dateYmd,
       slackUsed: slackUsed ?? this.slackUsed,
       tasks: tasks ?? this.tasks,
+      dailyNote: dailyNote ?? this.dailyNote,
       timeboxes: timeboxes ?? this.timeboxes,
       updatedAtEpochMs: updatedAtEpochMs ?? this.updatedAtEpochMs,
     );
@@ -51,6 +55,7 @@ class DailyData {
       'dateYmd': dateYmd,
       'slackUsed': slackUsed,
       'tasks': tasks.map((t) => t.toJson()).toList(growable: false),
+      'dailyNote': dailyNote,
       'timeboxes': timeboxes.map((t) => t.toJson()).toList(growable: false),
       'updatedAtEpochMs': updatedAtEpochMs,
     };
@@ -82,6 +87,7 @@ class DailyData {
       dateYmd: (json['dateYmd'] as String?) ?? '',
       slackUsed: (json['slackUsed'] as num?)?.toInt() ?? 0,
       tasks: tasks,
+      dailyNote: (json['dailyNote'] as String?) ?? '',
       timeboxes: timeboxes,
       updatedAtEpochMs: (json['updatedAtEpochMs'] as num?)?.toInt() ?? 0,
     );

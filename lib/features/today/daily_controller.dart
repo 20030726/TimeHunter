@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../app/providers.dart';
+import '../../core/constants/timer_constants.dart';
 import '../../core/models/daily_data.dart';
 import '../../core/models/task_item.dart';
 import '../../core/models/task_tag.dart';
@@ -16,6 +19,9 @@ final dailyControllerProvider =
     AsyncNotifierProvider<DailyController, DailyData>(DailyController.new);
 
 class DailyController extends AsyncNotifier<DailyData> {
+  Timer? _midnightTimer;
+  bool _isDisposed = false;
+
   Future<void> _persist(DailyData data) async {
     final stamped = data.copyWith(
       updatedAtEpochMs: DateTime.now().millisecondsSinceEpoch,
@@ -26,9 +32,20 @@ class DailyController extends AsyncNotifier<DailyData> {
 
   @override
   Future<DailyData> build() async {
+    _isDisposed = false;
+    ref.onDispose(() {
+      _isDisposed = true;
+      _midnightTimer?.cancel();
+      _midnightTimer = null;
+    });
+
+    _scheduleMidnightTransfer();
     final date = ref.watch(selectedDateProvider);
     final repo = ref.watch(dailyRepositoryProvider);
-    return repo.load(date);
+    final data = await repo.load(date);
+    final today = dateOnly(DateTime.now());
+    if (dateOnly(date) != today) return data;
+    return _applyPlannedTasks(date, data);
   }
 
   Future<void> addTask({
@@ -37,9 +54,57 @@ class DailyController extends AsyncNotifier<DailyData> {
     required int totalCycles,
     required int cycleMinutes,
     String? backgroundMusic,
+    String? note,
   }) async {
-    final current = await future;
+    final date = ref.read(selectedDateProvider);
+    await addTaskForDate(
+      date: date,
+      title: title,
+      tag: tag,
+      totalCycles: totalCycles,
+      cycleMinutes: cycleMinutes,
+      backgroundMusic: backgroundMusic,
+      note: note,
+    );
+  }
+
+  Future<void> updateDailyNote(String note) async {
+    final date = ref.read(selectedDateProvider);
+    await updateDailyNoteForDate(date: date, note: note);
+  }
+
+  Future<void> updateDailyNoteForDate({
+    required DateTime date,
+    required String note,
+  }) async {
+    final repo = ref.read(dailyRepositoryProvider);
+    final current = await repo.load(date);
+    if (current.dailyNote == note) return;
+
+    final updated = current.copyWith(
+      dailyNote: note,
+      updatedAtEpochMs: DateTime.now().millisecondsSinceEpoch,
+    );
+    await repo.save(updated);
+
+    final selected = ref.read(selectedDateProvider);
+    if (!_isDisposed && dateOnly(selected) == dateOnly(date)) {
+      state = AsyncData(updated);
+    }
+  }
+
+  Future<void> addTaskForDate({
+    required DateTime date,
+    required String title,
+    required TaskTag tag,
+    required int totalCycles,
+    required int cycleMinutes,
+    String? backgroundMusic,
+    String? note,
+  }) async {
     const uuid = Uuid();
+    final repo = ref.read(dailyRepositoryProvider);
+    final current = await repo.load(date);
 
     final updatedTasks = [
       ...current.tasks,
@@ -51,11 +116,20 @@ class DailyController extends AsyncNotifier<DailyData> {
         completedCycles: 0,
         cycleMinutes: cycleMinutes,
         backgroundMusic: backgroundMusic,
+        note: note,
       ),
     ];
 
-    final updated = current.copyWith(tasks: updatedTasks);
-    await _persist(updated);
+    final updated = current.copyWith(
+      tasks: updatedTasks,
+      updatedAtEpochMs: DateTime.now().millisecondsSinceEpoch,
+    );
+    await repo.save(updated);
+
+    final selected = ref.read(selectedDateProvider);
+    if (!_isDisposed && dateOnly(selected) == dateOnly(date)) {
+      state = AsyncData(updated);
+    }
   }
 
   Future<void> reorderTasks(int oldIndex, int newIndex) async {
@@ -95,6 +169,29 @@ class DailyController extends AsyncNotifier<DailyData> {
         .map((task) {
           if (task.id != taskId) return task;
           return task.copyWith(cycleMinutes: minutes);
+        })
+        .toList(growable: false);
+
+    final updated = current.copyWith(tasks: tasks);
+    await _persist(updated);
+  }
+
+  Future<void> updateTotalCycles(String taskId, int totalCycles) async {
+    final current = await future;
+    final clamped = totalCycles
+        .clamp(TimerConstants.minTotalCycles, TimerConstants.maxTotalCycles)
+        .toInt();
+
+    final tasks = current.tasks
+        .map((task) {
+          if (task.id != taskId) return task;
+          final completed = task.completedCycles > clamped
+              ? clamped
+              : task.completedCycles;
+          return task.copyWith(
+            totalCycles: clamped,
+            completedCycles: completed,
+          );
         })
         .toList(growable: false);
 
@@ -253,5 +350,87 @@ class DailyController extends AsyncNotifier<DailyData> {
 
     final updated = current.copyWith(timeboxes: updatedEntries);
     await _persist(updated);
+  }
+
+  Future<void> applyPlannedTasksForDate(DateTime date) async {
+    final repo = ref.read(dailyRepositoryProvider);
+    final data = await repo.load(date);
+    final updated = await _applyPlannedTasks(date, data);
+    final selected = ref.read(selectedDateProvider);
+    if (!_isDisposed && dateOnly(selected) == dateOnly(date)) {
+      state = AsyncData(updated);
+    }
+  }
+
+  Future<DailyData> _applyPlannedTasks(
+    DateTime date,
+    DailyData data,
+  ) async {
+    final plannedRepo = ref.read(plannedTaskRepositoryProvider);
+    final dateKey = ymd(date);
+    final plannedTasks = await plannedRepo.loadForDate(dateKey);
+    if (plannedTasks.isEmpty) return data;
+
+    final existingSourceIds = data.tasks
+        .map((task) => task.plannedSourceId)
+        .whereType<String>()
+        .toSet();
+
+    final updatedTasks = [...data.tasks];
+    var tasksChanged = false;
+    final nowMs = DateTime.now().millisecondsSinceEpoch;
+    const uuid = Uuid();
+
+    for (final planned in plannedTasks) {
+      final cycles = planned.cyclesForDate(dateKey);
+      final updatedPlanned = planned.removeDate(dateKey);
+      if (updatedPlanned.plannedDates.isEmpty) {
+        await plannedRepo.remove(planned.id);
+      } else {
+        await plannedRepo.save(
+          updatedPlanned.copyWith(updatedAtEpochMs: nowMs),
+        );
+      }
+
+      if (cycles <= 0 || existingSourceIds.contains(planned.id)) {
+        continue;
+      }
+
+      updatedTasks.add(
+        TaskItem(
+          id: uuid.v4(),
+          title: planned.title,
+          tag: planned.tag,
+          totalCycles: cycles,
+          completedCycles: 0,
+          cycleMinutes: planned.cycleMinutes,
+          note: planned.note,
+          plannedSourceId: planned.id,
+        ),
+      );
+      tasksChanged = true;
+    }
+
+    if (!tasksChanged) return data;
+
+    final updated = data.copyWith(
+      tasks: updatedTasks,
+      updatedAtEpochMs: nowMs,
+    );
+    await ref.read(dailyRepositoryProvider).save(updated);
+    return updated;
+  }
+
+  void _scheduleMidnightTransfer() {
+    _midnightTimer?.cancel();
+    final now = DateTime.now();
+    final nextRun = DateTime(now.year, now.month, now.day + 1, 0, 1);
+    final delay = nextRun.difference(now);
+    _midnightTimer = Timer(delay, () async {
+      if (_isDisposed) return;
+      await applyPlannedTasksForDate(dateOnly(DateTime.now()));
+      if (_isDisposed) return;
+      _scheduleMidnightTransfer();
+    });
   }
 }

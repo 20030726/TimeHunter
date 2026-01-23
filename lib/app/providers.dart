@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/auth/auth_repository.dart';
 import '../core/storage/daily_repository.dart';
+import '../core/storage/planned_task_repository.dart';
 import '../core/storage/settings_repository.dart';
 import '../core/storage/timer_repository.dart';
 import '../services/audio/looping_audio_service.dart';
@@ -16,6 +17,10 @@ final timerRepositoryProvider = Provider<TimerRepository>((ref) {
 
 final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
   throw UnimplementedError('Override settingsRepositoryProvider in main()');
+});
+
+final plannedTaskRepositoryProvider = Provider<PlannedTaskRepository>((ref) {
+  throw UnimplementedError('Override plannedTaskRepositoryProvider in main()');
 });
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {

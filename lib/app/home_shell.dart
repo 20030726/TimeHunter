@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:timehunter/app/providers.dart';
 import 'package:timehunter/features/calendar/calendar_page.dart';
 import 'package:timehunter/features/today/today_page.dart';
+import 'package:timehunter/features/tasks/plan_reminder_listener.dart';
 
 class HomeShell extends ConsumerWidget {
   const HomeShell({super.key});
@@ -17,8 +18,11 @@ class HomeShell extends ConsumerWidget {
     final selectedIndex = ref.watch(navIndexProvider);
 
     return Scaffold(
-      body: Center(
-        child: _widgetOptions.elementAt(selectedIndex),
+      body: Stack(
+        children: [
+          Center(child: _widgetOptions.elementAt(selectedIndex)),
+          const PlanReminderListener(),
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[

@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use, avoid_web_libraries_in_flutter
 import 'dart:html' as html;
 
 bool fullscreenSupportedImpl() => html.document.documentElement != null;
@@ -15,5 +16,5 @@ Future<void> exitFullscreenImpl() async {
 }
 
 Stream<void> onFullscreenChangeImpl() {
-  return html.document.onFullscreenChange.map((_) => null);
+  return html.document.onFullscreenChange.map((_) {});
 }

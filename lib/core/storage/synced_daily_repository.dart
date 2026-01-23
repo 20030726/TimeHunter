@@ -20,6 +20,7 @@ class SyncedDailyRepository implements DailyRepository {
   bool _hasData(DailyData data) {
     return data.tasks.isNotEmpty ||
         data.timeboxes.isNotEmpty ||
+        data.dailyNote.trim().isNotEmpty ||
         data.slackUsed > 0;
   }
 

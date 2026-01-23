@@ -7,6 +7,7 @@ import 'core/auth/auth_repository.dart';
 import 'core/storage/daily_repository.dart';
 import 'core/storage/firebase_daily_repository.dart';
 import 'core/storage/hive_boxes.dart';
+import 'core/storage/planned_task_repository.dart';
 import 'core/storage/settings_repository.dart';
 import 'core/storage/synced_daily_repository.dart';
 import 'core/storage/timer_repository.dart';
@@ -24,6 +25,7 @@ Future<void> main() async {
   final dailyBox = await hiveService.openBox(HiveBoxes.daily);
   final timerBox = await hiveService.openBox(HiveBoxes.timer);
   final settingsBox = await hiveService.openBox(HiveBoxes.settings);
+  final plannedTasksBox = await hiveService.openBox(HiveBoxes.plannedTasks);
 
   const firebaseBootstrap = FirebaseBootstrap();
   await firebaseBootstrap.initialize(
@@ -45,6 +47,7 @@ Future<void> main() async {
   );
   final timerRepository = HiveTimerRepository(timerBox);
   final settingsRepository = HiveSettingsRepository(settingsBox);
+  final plannedTaskRepository = HivePlannedTaskRepository(plannedTasksBox);
 
   runApp(
     ProviderScope(
@@ -52,6 +55,7 @@ Future<void> main() async {
         dailyRepositoryProvider.overrideWithValue(dailyRepository),
         timerRepositoryProvider.overrideWithValue(timerRepository),
         settingsRepositoryProvider.overrideWithValue(settingsRepository),
+        plannedTaskRepositoryProvider.overrideWithValue(plannedTaskRepository),
         authRepositoryProvider.overrideWithValue(authRepository),
       ],
       child: const TimeHunterApp(),
