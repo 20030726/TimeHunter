@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/models/hunt_variant.dart';
 import '../../core/models/task_tag.dart';
 import '../../core/utils/iterable_ext.dart';
 import '../today/daily_controller.dart';
-import '../showcase/variant_layouts.dart';
 import 'fullscreen_control.dart';
 import 'music_control.dart';
 import 'timer_controller.dart';

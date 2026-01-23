@@ -44,8 +44,8 @@ class DailyController extends AsyncNotifier<DailyData> {
     final repo = ref.watch(dailyRepositoryProvider);
     final data = await repo.load(date);
     final today = dateOnly(DateTime.now());
-    if (dateOnly(date) != today) return data;
-    return _applyPlannedTasks(date, data);
+    final removePlanned = !dateOnly(date).isAfter(today);
+    return _applyPlannedTasks(date, data, removePlanned: removePlanned);
   }
 
   Future<void> addTask({
@@ -355,7 +355,11 @@ class DailyController extends AsyncNotifier<DailyData> {
   Future<void> applyPlannedTasksForDate(DateTime date) async {
     final repo = ref.read(dailyRepositoryProvider);
     final data = await repo.load(date);
-    final updated = await _applyPlannedTasks(date, data);
+    final updated = await _applyPlannedTasks(
+      date,
+      data,
+      removePlanned: true,
+    );
     final selected = ref.read(selectedDateProvider);
     if (!_isDisposed && dateOnly(selected) == dateOnly(date)) {
       state = AsyncData(updated);
@@ -364,8 +368,9 @@ class DailyController extends AsyncNotifier<DailyData> {
 
   Future<DailyData> _applyPlannedTasks(
     DateTime date,
-    DailyData data,
-  ) async {
+    DailyData data, {
+    required bool removePlanned,
+  }) async {
     final plannedRepo = ref.read(plannedTaskRepositoryProvider);
     final dateKey = ymd(date);
     final plannedTasks = await plannedRepo.loadForDate(dateKey);
@@ -383,13 +388,15 @@ class DailyController extends AsyncNotifier<DailyData> {
 
     for (final planned in plannedTasks) {
       final cycles = planned.cyclesForDate(dateKey);
-      final updatedPlanned = planned.removeDate(dateKey);
-      if (updatedPlanned.plannedDates.isEmpty) {
-        await plannedRepo.remove(planned.id);
-      } else {
-        await plannedRepo.save(
-          updatedPlanned.copyWith(updatedAtEpochMs: nowMs),
-        );
+      if (removePlanned) {
+        final updatedPlanned = planned.removeDate(dateKey);
+        if (updatedPlanned.plannedDates.isEmpty) {
+          await plannedRepo.remove(planned.id);
+        } else {
+          await plannedRepo.save(
+            updatedPlanned.copyWith(updatedAtEpochMs: nowMs),
+          );
+        }
       }
 
       if (cycles <= 0 || existingSourceIds.contains(planned.id)) {

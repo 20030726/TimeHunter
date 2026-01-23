@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-
+import '../../core/models/hunt_variant.dart';
+import '../../core/theme/variant_ui.dart';
 import '../../core/utils/time_format.dart';
 import '../../widgets/glass_panel.dart';
 import '../../widgets/glow_progress_bar.dart';
+import '../../widgets/xp_bar_overview.dart';
 import '../showcase/variant_layouts.dart';
 import 'fullscreen_control.dart';
 import 'music_control.dart';
@@ -358,16 +359,18 @@ class _HudTimerLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = data.accent;
-    final textColor = const Color(0xFFE6F8F2);
-    final muted = const Color(0xFF7BA3A7);
+    final style = plannerStyleFor(data.variant);
+    final accent = style.accent;
+    final textColor = style.textPrimary;
+    final muted = style.textSecondary;
+    final tagColor = data.accent;
 
     return Stack(
       children: [
         DecoratedBox(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF05070F), Color(0xFF08162B), Color(0xFF041320)],
+              colors: style.canvasGradient,
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -377,7 +380,7 @@ class _HudTimerLayout extends StatelessWidget {
         Positioned(
           top: -120,
           right: -80,
-          child: _GlowBlob(color: accent, size: 220, opacity: 0.25),
+          child: _GlowBlob(color: style.accentSoft, size: 220, opacity: 0.25),
         ),
         Positioned(
           bottom: -140,
@@ -406,7 +409,7 @@ class _HudTimerLayout extends StatelessWidget {
                         data.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.orbitron(
+                        style: style.titleFont.copyWith(
                           color: textColor,
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -414,7 +417,7 @@ class _HudTimerLayout extends StatelessWidget {
                         ),
                       ),
                     ),
-                    TimerTagPill(label: data.tagLabel, color: accent),
+                    TimerTagPill(label: data.tagLabel, color: tagColor),
                     if (data.showSlackInHeader) ...[
                       const SizedBox(width: 10),
                       SlackTickets(
@@ -436,7 +439,7 @@ class _HudTimerLayout extends StatelessWidget {
                         child: TimerCountdown(
                           seconds: data.remainingSeconds,
                           glowColor: accent,
-                          style: GoogleFonts.orbitron(
+                          style: style.displayFont.copyWith(
                             fontSize: 96,
                             color: textColor,
                             fontWeight: FontWeight.w700,
@@ -456,7 +459,7 @@ class _HudTimerLayout extends StatelessWidget {
                         alignment: Alignment.centerRight,
                         child: Text(
                           '${(data.ratio * 100).round()}%',
-                          style: GoogleFonts.spaceGrotesk(
+                          style: style.bodyFont.copyWith(
                             color: muted,
                             fontSize: 12,
                           ),
@@ -481,7 +484,7 @@ class _HudTimerLayout extends StatelessWidget {
                         primaryText: Colors.black,
                         onToggleRun: data.onToggleRun,
                         onSlack: data.onSlack,
-                        textStyle: GoogleFonts.spaceGrotesk(
+                        textStyle: style.bodyFont.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -512,16 +515,17 @@ class _TimelineTimerLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = const Color(0xFFF59E0B);
-    final textColor = const Color(0xFF3B2F2F);
-    final muted = const Color(0xFF7B6A58);
+    final style = plannerStyleFor(data.variant);
+    final accent = style.accent;
+    final textColor = style.textPrimary;
+    final muted = style.textSecondary;
 
     return Stack(
       children: [
         DecoratedBox(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFFF7F3EE), Color(0xFFEDE3D6)],
+              colors: style.canvasGradient,
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -548,7 +552,7 @@ class _TimelineTimerLayout extends StatelessWidget {
                     Expanded(
                       child: Text(
                         data.title,
-                        style: GoogleFonts.ibmPlexSans(
+                        style: style.titleFont.copyWith(
                           color: textColor,
                           fontWeight: FontWeight.w700,
                         ),
@@ -566,7 +570,7 @@ class _TimelineTimerLayout extends StatelessWidget {
                 const SizedBox(height: 12),
                 TimerCountdown(
                   seconds: data.remainingSeconds,
-                  style: GoogleFonts.bebasNeue(
+                  style: style.displayFont.copyWith(
                     fontSize: 92,
                     color: textColor,
                     letterSpacing: 2,
@@ -584,7 +588,7 @@ class _TimelineTimerLayout extends StatelessWidget {
                   children: [
                     Text(
                       '${data.completedCycles}/${data.totalCycles} 輪',
-                      style: GoogleFonts.ibmPlexSans(
+                      style: style.bodyFont.copyWith(
                         color: muted,
                         fontSize: 12,
                       ),
@@ -592,7 +596,7 @@ class _TimelineTimerLayout extends StatelessWidget {
                     const Spacer(),
                     Text(
                       '${(data.ratio * 100).round()}%',
-                      style: GoogleFonts.ibmPlexSans(
+                      style: style.bodyFont.copyWith(
                         color: muted,
                         fontSize: 12,
                       ),
@@ -609,13 +613,15 @@ class _TimelineTimerLayout extends StatelessWidget {
                   primaryText: Colors.black,
                   onToggleRun: data.onToggleRun,
                   onSlack: data.onSlack,
-                  textStyle: GoogleFonts.ibmPlexSans(
+                  textStyle: style.bodyFont.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                   secondaryStyle: FilledButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: accent,
-                    textStyle: GoogleFonts.ibmPlexSans(fontWeight: FontWeight.w700),
+                    textStyle: style.bodyFont.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -646,10 +652,11 @@ class _SplitTimerLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = const Color(0xFFF97316);
-    final accent2 = const Color(0xFF38BDF8);
-    final textColor = const Color(0xFFE2E8F0);
-    final muted = const Color(0xFF94A3B8);
+    final style = plannerStyleFor(data.variant);
+    final accent = style.accent;
+    final accent2 = style.accentSoft;
+    final textColor = style.textPrimary;
+    final muted = style.textSecondary;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -679,7 +686,7 @@ class _SplitTimerLayout extends StatelessWidget {
                   Expanded(
                     child: Text(
                       data.title,
-                      style: GoogleFonts.sora(
+                      style: style.titleFont.copyWith(
                         color: textColor,
                         fontWeight: FontWeight.w700,
                       ),
@@ -700,7 +707,7 @@ class _SplitTimerLayout extends StatelessWidget {
                   child: TimerCountdown(
                     seconds: data.remainingSeconds,
                     glowColor: accent2,
-                    style: GoogleFonts.sora(
+                    style: style.displayFont.copyWith(
                       color: textColor,
                       fontSize: 84,
                       fontWeight: FontWeight.w700,
@@ -718,7 +725,7 @@ class _SplitTimerLayout extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 '${(data.ratio * 100).round()}%  ·  ${data.completedCycles}/${data.totalCycles} 輪',
-                style: GoogleFonts.sora(color: muted, fontSize: 12),
+                style: style.bodyFont.copyWith(color: muted, fontSize: 12),
               ),
             ],
           ),
@@ -739,7 +746,7 @@ class _SplitTimerLayout extends StatelessWidget {
                   Expanded(
                     child: Text(
                       '控制台',
-                      style: GoogleFonts.sora(
+                      style: style.titleFont.copyWith(
                         color: textColor,
                         fontWeight: FontWeight.w700,
                         fontSize: 16,
@@ -760,7 +767,7 @@ class _SplitTimerLayout extends StatelessWidget {
                 primaryText: Colors.black,
                 onToggleRun: data.onToggleRun,
                 onSlack: data.onSlack,
-                textStyle: GoogleFonts.sora(fontWeight: FontWeight.w700),
+                textStyle: style.bodyFont.copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 12),
               TimerCycleSlider(
@@ -777,9 +784,9 @@ class _SplitTimerLayout extends StatelessWidget {
         return Stack(
           children: [
             DecoratedBox(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Color(0xFF0F172A), Color(0xFF0B1B2D), Color(0xFF1E293B)],
+                  colors: style.canvasGradient,
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -820,15 +827,22 @@ class _MonoStrikeTimerLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = const Color(0xFF00FF7F);
-    final textColor = const Color(0xFFF8FAFC);
-    final muted = const Color(0xFF94A3B8);
+    final style = plannerStyleFor(data.variant);
+    final accent = style.accent;
+    final textColor = style.textPrimary;
+    final muted = style.textSecondary;
 
     return Stack(
       children: [
-        const DecoratedBox(
-          decoration: BoxDecoration(color: Color(0xFF020617)),
-          child: SizedBox.expand(),
+        DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: style.canvasGradient,
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+          child: const SizedBox.expand(),
         ),
         GridBackdrop(color: accent),
         SafeArea(
@@ -848,7 +862,7 @@ class _MonoStrikeTimerLayout extends StatelessWidget {
                     Expanded(
                       child: Text(
                         data.title,
-                        style: GoogleFonts.spaceMono(
+                        style: style.titleFont.copyWith(
                           color: textColor,
                           fontWeight: FontWeight.w700,
                         ),
@@ -868,7 +882,7 @@ class _MonoStrikeTimerLayout extends StatelessWidget {
                     child: TimerCountdown(
                       seconds: data.remainingSeconds,
                       glowColor: accent,
-                      style: GoogleFonts.spaceMono(
+                      style: style.displayFont.copyWith(
                         fontSize: 92,
                         color: textColor,
                         fontWeight: FontWeight.w700,
@@ -884,7 +898,7 @@ class _MonoStrikeTimerLayout extends StatelessWidget {
                 const SizedBox(height: 10),
                 Text(
                   '${data.completedCycles}/${data.totalCycles} 輪',
-                  style: GoogleFonts.spaceMono(
+                  style: style.bodyFont.copyWith(
                     color: muted,
                     fontSize: 12,
                   ),
@@ -897,7 +911,7 @@ class _MonoStrikeTimerLayout extends StatelessWidget {
                   primaryText: Colors.black,
                   onToggleRun: data.onToggleRun,
                   onSlack: data.onSlack,
-                  textStyle: GoogleFonts.spaceMono(fontWeight: FontWeight.w700),
+                  textStyle: style.bodyFont.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 12),
                 TimerCycleSlider(
@@ -923,22 +937,23 @@ class _StellarTimerLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = const Color(0xFF7EE8FA);
-    final accent2 = const Color(0xFF39FF14);
-    final textColor = const Color(0xFFE2F1FF);
-    final muted = const Color(0xFF91A3B5);
+    final style = plannerStyleFor(data.variant);
+    final accent = style.accent;
+    final accent2 = style.accentSoft;
+    final textColor = style.textPrimary;
+    final muted = style.textSecondary;
 
     return Stack(
       children: [
-        const DecoratedBox(
+        DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF020617), Color(0xFF0F1C33)],
+              colors: style.canvasGradient,
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
           ),
-          child: SizedBox.expand(),
+          child: const SizedBox.expand(),
         ),
         StarfieldBackdrop(accent: accent),
         Positioned(
@@ -963,7 +978,7 @@ class _StellarTimerLayout extends StatelessWidget {
                     Expanded(
                       child: Text(
                         data.title,
-                        style: GoogleFonts.orbitron(
+                        style: style.titleFont.copyWith(
                           color: textColor,
                           fontWeight: FontWeight.w700,
                         ),
@@ -989,7 +1004,7 @@ class _StellarTimerLayout extends StatelessWidget {
                           size: 190,
                           trackColor: Colors.white.withValues(alpha: 0.12),
                           progressColor: accent2,
-                          textStyle: GoogleFonts.orbitron(
+                          textStyle: style.bodyFont.copyWith(
                             color: textColor,
                             fontWeight: FontWeight.w700,
                             fontSize: 14,
@@ -998,7 +1013,7 @@ class _StellarTimerLayout extends StatelessWidget {
                         TimerCountdown(
                           seconds: data.remainingSeconds,
                           glowColor: accent2,
-                          style: GoogleFonts.orbitron(
+                          style: style.displayFont.copyWith(
                             fontSize: 64,
                             color: textColor,
                             fontWeight: FontWeight.w700,
@@ -1010,7 +1025,7 @@ class _StellarTimerLayout extends StatelessWidget {
                 ),
                 Text(
                   '星際進度 ${data.completedCycles}/${data.totalCycles} 輪',
-                  style: GoogleFonts.spaceGrotesk(color: muted, fontSize: 12),
+                  style: style.bodyFont.copyWith(color: muted, fontSize: 12),
                 ),
                 const SizedBox(height: 12),
                 TimerActionButtons(
@@ -1020,7 +1035,7 @@ class _StellarTimerLayout extends StatelessWidget {
                   primaryText: Colors.black,
                   onToggleRun: data.onToggleRun,
                   onSlack: data.onSlack,
-                  textStyle: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w700),
+                  textStyle: style.bodyFont.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 12),
                 TimerCycleSlider(
@@ -1046,22 +1061,23 @@ class _ArcadeTimerLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = const Color(0xFF00F5FF);
-    final accent2 = const Color(0xFF39FF14);
-    final textColor = const Color(0xFFF8FAFC);
-    final muted = const Color(0xFF9CA3AF);
+    final style = plannerStyleFor(data.variant);
+    final accent = style.accent;
+    final accent2 = style.accentSoft;
+    final textColor = style.textPrimary;
+    final muted = style.textSecondary;
 
     return Stack(
       children: [
-        const DecoratedBox(
+        DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF0B0F14), Color(0xFF0B1220)],
+              colors: style.canvasGradient,
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
           ),
-          child: SizedBox.expand(),
+          child: const SizedBox.expand(),
         ),
         Positioned(
           top: -100,
@@ -1085,7 +1101,7 @@ class _ArcadeTimerLayout extends StatelessWidget {
                     Expanded(
                       child: Text(
                         data.title,
-                        style: GoogleFonts.pressStart2p(
+                        style: style.titleFont.copyWith(
                           color: accent,
                           fontSize: 10,
                         ),
@@ -1100,7 +1116,7 @@ class _ArcadeTimerLayout extends StatelessWidget {
                     child: TimerCountdown(
                       seconds: data.remainingSeconds,
                       glowColor: accent2,
-                      style: GoogleFonts.rubikMonoOne(
+                      style: style.displayFont.copyWith(
                         color: textColor,
                         fontSize: 72,
                       ),
@@ -1109,7 +1125,7 @@ class _ArcadeTimerLayout extends StatelessWidget {
                 ),
                 Text(
                   'XP 進度',
-                  style: GoogleFonts.pressStart2p(
+                  style: style.bodyFont.copyWith(
                     color: muted,
                     fontSize: 10,
                   ),
@@ -1128,7 +1144,7 @@ class _ArcadeTimerLayout extends StatelessWidget {
                   primaryText: Colors.black,
                   onToggleRun: data.onToggleRun,
                   onSlack: data.onSlack,
-                  textStyle: GoogleFonts.pressStart2p(fontSize: 8),
+                  textStyle: style.bodyFont.copyWith(fontSize: 8),
                   primaryLabel: 'START',
                   pauseLabel: 'PAUSE',
                   slackLabel: 'COIN +15',
@@ -1158,21 +1174,22 @@ class _OrbitTimerLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = const Color(0xFF22D3EE);
-    final accent2 = const Color(0xFFFCD34D);
-    final textColor = const Color(0xFFE2E8F0);
+    final style = plannerStyleFor(data.variant);
+    final accent = style.accent;
+    final accent2 = style.accentSoft;
+    final textColor = style.textPrimary;
 
     return Stack(
       children: [
-        const DecoratedBox(
+        DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF0B1220), Color(0xFF0B1A2A)],
+              colors: style.canvasGradient,
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
           ),
-          child: SizedBox.expand(),
+          child: const SizedBox.expand(),
         ),
         SafeArea(
           child: Padding(
@@ -1191,7 +1208,7 @@ class _OrbitTimerLayout extends StatelessWidget {
                     Expanded(
                       child: Text(
                         data.title,
-                        style: GoogleFonts.exo2(
+                        style: style.titleFont.copyWith(
                           color: textColor,
                           fontWeight: FontWeight.w700,
                         ),
@@ -1221,7 +1238,7 @@ class _OrbitTimerLayout extends StatelessWidget {
                         TimerCountdown(
                           seconds: data.remainingSeconds,
                           glowColor: accent,
-                          style: GoogleFonts.exo2(
+                          style: style.displayFont.copyWith(
                             fontSize: 68,
                             color: textColor,
                             fontWeight: FontWeight.w700,
@@ -1238,7 +1255,7 @@ class _OrbitTimerLayout extends StatelessWidget {
                   primaryText: Colors.black,
                   onToggleRun: data.onToggleRun,
                   onSlack: data.onSlack,
-                  textStyle: GoogleFonts.exo2(fontWeight: FontWeight.w700),
+                  textStyle: style.bodyFont.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 12),
                 TimerCycleSlider(
@@ -1264,22 +1281,23 @@ class _AuroraTimerLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = const Color(0xFF22C55E);
-    final accent2 = const Color(0xFF0EA5E9);
-    final textColor = const Color(0xFFF8FAFC);
-    final muted = const Color(0xFFCBD5F5);
+    final style = plannerStyleFor(data.variant);
+    final accent = style.accent;
+    final accent2 = style.accentSoft;
+    final textColor = style.textPrimary;
+    final muted = style.textSecondary;
 
     return Stack(
       children: [
-        const DecoratedBox(
+        DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF0EA5E9), Color(0xFF22C55E)],
+              colors: style.canvasGradient,
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
           ),
-          child: SizedBox.expand(),
+          child: const SizedBox.expand(),
         ),
         Positioned(
           top: -140,
@@ -1308,7 +1326,7 @@ class _AuroraTimerLayout extends StatelessWidget {
                     Expanded(
                       child: Text(
                         data.title,
-                        style: GoogleFonts.manrope(
+                        style: style.titleFont.copyWith(
                           color: textColor,
                           fontWeight: FontWeight.w700,
                         ),
@@ -1337,7 +1355,7 @@ class _AuroraTimerLayout extends StatelessWidget {
                         children: [
                           Text(
                             'SAVE THE TIME',
-                            style: GoogleFonts.manrope(
+                            style: style.bodyFont.copyWith(
                               color: textColor,
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
@@ -1348,7 +1366,7 @@ class _AuroraTimerLayout extends StatelessWidget {
                           TimerCountdown(
                             seconds: data.remainingSeconds,
                             glowColor: textColor,
-                            style: GoogleFonts.spaceGrotesk(
+                            style: style.displayFont.copyWith(
                               fontSize: 72,
                               color: textColor,
                               fontWeight: FontWeight.w700,
@@ -1357,7 +1375,7 @@ class _AuroraTimerLayout extends StatelessWidget {
                           const SizedBox(height: 10),
                           Text(
                             'Cycle ${data.cycleMinutes} 分鐘',
-                            style: GoogleFonts.manrope(
+                            style: style.bodyFont.copyWith(
                               color: muted,
                               fontSize: 12,
                             ),
@@ -1382,11 +1400,11 @@ class _AuroraTimerLayout extends StatelessWidget {
                   primaryText: Colors.black,
                   onToggleRun: data.onToggleRun,
                   onSlack: data.onSlack,
-                  textStyle: GoogleFonts.manrope(fontWeight: FontWeight.w700),
+                  textStyle: style.bodyFont.copyWith(fontWeight: FontWeight.w700),
                   secondaryStyle: FilledButton.styleFrom(
                     backgroundColor: Colors.white.withValues(alpha: 0.25),
                     foregroundColor: textColor,
-                    textStyle: GoogleFonts.manrope(fontWeight: FontWeight.w700),
+                    textStyle: style.bodyFont.copyWith(fontWeight: FontWeight.w700),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/models/daily_data.dart';
+import '../../core/models/hunt_variant.dart';
 import '../../core/models/task_item.dart';
 import '../settings/settings_page.dart';
 import '../settings/variant_settings_controller.dart';

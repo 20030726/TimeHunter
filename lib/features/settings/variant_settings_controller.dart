@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/providers.dart';
-import '../showcase/variant_layouts.dart';
+import '../../core/models/hunt_variant.dart';
 
 final variantSettingsProvider =
     AsyncNotifierProvider<VariantSettingsController, HuntVariant>(

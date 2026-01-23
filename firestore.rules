@@ -4,7 +4,8 @@ service cloud.firestore {
     match /users/{userId}/daily/{docId} {
       allow read, write: if request.auth != null
           && (request.auth.uid == 'CFAjBuCEaIX3BOfxrEeiUji4Frb2'
-              || request.auth.uid == 'Me4C7sZ4mXVsG3XdZN47O58htRk1');
+              || request.auth.uid == 'Me4C7sZ4mXVsG3XdZN47O58htRk1'
+              || request.auth.uid == 'GnUSOL7BaaWmfwH0nh50Pj30Gd83');
     }
   }
 }

@@ -2,68 +2,14 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-
 import '../../core/models/daily_data.dart';
+import '../../core/models/hunt_variant.dart';
+import '../../core/theme/variant_ui.dart';
 import '../../core/models/task_item.dart';
 import '../../core/models/task_tag.dart';
 import '../../core/utils/time_format.dart';
 import '../../widgets/glow_progress_bar.dart';
-
-enum HuntVariant {
-  huntHud,
-  timelineRail,
-  splitCommand,
-  monoStrike,
-  stellarHunt,
-  arcadeBoard,
-  orbitCommand,
-  auroraGlass,
-}
-
-extension HuntVariantX on HuntVariant {
-  String get label {
-    switch (this) {
-      case HuntVariant.huntHud:
-        return 'Hunt HUD';
-      case HuntVariant.timelineRail:
-        return 'Timeline Rail';
-      case HuntVariant.splitCommand:
-        return 'Split Command';
-      case HuntVariant.monoStrike:
-        return 'Mono Strike';
-      case HuntVariant.stellarHunt:
-        return 'Stellar Hunt';
-      case HuntVariant.arcadeBoard:
-        return 'Arcade Board';
-      case HuntVariant.orbitCommand:
-        return 'Orbit Command';
-      case HuntVariant.auroraGlass:
-        return 'Aurora Glass';
-    }
-  }
-
-  String get tagline {
-    switch (this) {
-      case HuntVariant.huntHud:
-        return '霓虹戰術 HUD';
-      case HuntVariant.timelineRail:
-        return '時間軸手帳';
-      case HuntVariant.splitCommand:
-        return '指揮中樞分屏';
-      case HuntVariant.monoStrike:
-        return '極簡重擊';
-      case HuntVariant.stellarHunt:
-        return '宇宙獵場';
-      case HuntVariant.arcadeBoard:
-        return '街機計分板';
-      case HuntVariant.orbitCommand:
-        return '軌道指揮';
-      case HuntVariant.auroraGlass:
-        return '極光玻璃';
-    }
-  }
-}
+import '../../widgets/xp_bar_overview.dart';
 
 class VariantData {
   VariantData({
@@ -543,64 +489,6 @@ class MiniBarOverview extends StatelessWidget {
   }
 }
 
-class XpBarOverview extends StatelessWidget {
-  const XpBarOverview({
-    super.key,
-    required this.value,
-    required this.accent,
-    required this.track,
-  });
-
-  final double value;
-  final Color accent;
-  final Color track;
-
-  @override
-  Widget build(BuildContext context) {
-    final v = value.clamp(0.0, 1.0);
-    return Stack(
-      children: [
-        Container(
-          height: 12,
-          decoration: BoxDecoration(
-            color: track,
-            borderRadius: BorderRadius.circular(999),
-          ),
-        ),
-        FractionallySizedBox(
-          widthFactor: v,
-          child: Container(
-            height: 12,
-            decoration: BoxDecoration(
-              color: accent,
-              borderRadius: BorderRadius.circular(999),
-              boxShadow: [
-                BoxShadow(
-                  color: accent.withValues(alpha: 0.6),
-                  blurRadius: 12,
-                ),
-              ],
-            ),
-          ),
-        ),
-        Positioned.fill(
-          child: Row(
-            children: List.generate(6, (index) {
-              return Expanded(
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                  width: 2,
-                  color: Colors.white.withValues(alpha: 0.15),
-                ),
-              );
-            }),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class OrbitOverview extends StatelessWidget {
   const OrbitOverview({
     super.key,
@@ -802,21 +690,18 @@ class HuntHudLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = const Color(0xFF39FF88);
-    final accent2 = const Color(0xFF22D3EE);
-    final textColor = const Color(0xFFE6F8F2);
-    final muted = const Color(0xFF7BA3A7);
+    final style = plannerStyleFor(HuntVariant.huntHud);
+    final accent = style.accent;
+    final accent2 = style.accentSoft;
+    final textColor = style.textPrimary;
+    final muted = style.textSecondary;
 
     return Stack(
       children: [
         DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                const Color(0xFF05070F),
-                const Color(0xFF08162B),
-                const Color(0xFF041320),
-              ],
+              colors: style.canvasGradient,
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -843,7 +728,7 @@ class HuntHudLayout extends StatelessWidget {
                   children: [
                     Text(
                       'TIME HUNTER',
-                      style: GoogleFonts.orbitron(
+                      style: style.titleFont.copyWith(
                         color: textColor,
                         fontSize: 16,
                         letterSpacing: 2,
@@ -866,7 +751,7 @@ class HuntHudLayout extends StatelessWidget {
                     child: CountdownDisplay(
                       seconds: data.countdown,
                       glowColor: accent,
-                      textStyle: GoogleFonts.orbitron(
+                      textStyle: style.displayFont.copyWith(
                         fontSize: 96,
                         color: textColor,
                         fontWeight: FontWeight.w700,
@@ -882,7 +767,7 @@ class HuntHudLayout extends StatelessWidget {
                       size: 84,
                       trackColor: Colors.white.withValues(alpha: 0.12),
                       progressColor: accent,
-                      textStyle: GoogleFonts.spaceGrotesk(
+                      textStyle: style.bodyFont.copyWith(
                         color: textColor,
                         fontWeight: FontWeight.w700,
                         fontSize: 14,
@@ -892,7 +777,7 @@ class HuntHudLayout extends StatelessWidget {
                     Expanded(
                       child: Text(
                         '總進度 ${data.daily.completedCycles}/${data.daily.totalCycles} 輪',
-                        style: GoogleFonts.spaceGrotesk(
+                        style: style.bodyFont.copyWith(
                           color: muted,
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -907,7 +792,7 @@ class HuntHudLayout extends StatelessWidget {
                           horizontal: 14,
                           vertical: 12,
                         ),
-                        textStyle: GoogleFonts.spaceGrotesk(
+                        textStyle: style.bodyFont.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -927,23 +812,22 @@ class HuntHudLayout extends StatelessWidget {
                         task: task,
                         onStart: () => data.onStartTask(task),
                         accent: accent,
-                        background: const Color(0xFF0B1F2C)
-                            .withValues(alpha: 0.9),
+                        background:
+                            style.panelGradient.first.withValues(alpha: 0.9),
                         border: accent.withValues(alpha: 0.35),
                         textColor: textColor,
                         subTextColor: muted,
-                        titleStyle: GoogleFonts.spaceGrotesk(
+                        titleStyle: style.titleFont.copyWith(
                           color: textColor,
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                         ),
-                        metaStyle: GoogleFonts.spaceGrotesk(
+                        metaStyle: style.bodyFont.copyWith(
                           color: muted,
                           fontSize: 12,
                         ),
-                        buttonStyle: GoogleFonts.spaceGrotesk(
-                          fontWeight: FontWeight.w700,
-                        ),
+                        buttonStyle:
+                            style.bodyFont.copyWith(fontWeight: FontWeight.w700),
                       );
                     },
                   ),
@@ -964,19 +848,17 @@ class TimelineRailLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = const Color(0xFFF59E0B);
-    final textColor = const Color(0xFF3B2F2F);
-    final muted = const Color(0xFF7B6A58);
+    final style = plannerStyleFor(HuntVariant.timelineRail);
+    final accent = style.accent;
+    final textColor = style.textPrimary;
+    final muted = style.textSecondary;
 
     return Stack(
       children: [
         DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                const Color(0xFFF7F3EE),
-                const Color(0xFFEDE3D6),
-              ],
+              colors: style.canvasGradient,
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -993,7 +875,7 @@ class TimelineRailLayout extends StatelessWidget {
                   children: [
                     Text(
                       'TODAY RAIL',
-                      style: GoogleFonts.ibmPlexSans(
+                      style: style.titleFont.copyWith(
                         color: textColor,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 1,
@@ -1011,9 +893,8 @@ class TimelineRailLayout extends StatelessWidget {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: textColor,
                         side: BorderSide(color: accent.withValues(alpha: 0.5)),
-                        textStyle: GoogleFonts.ibmPlexSans(
-                          fontWeight: FontWeight.w700,
-                        ),
+                        textStyle:
+                            style.bodyFont.copyWith(fontWeight: FontWeight.w700),
                       ),
                       onPressed: data.onAddTask,
                       icon: const Icon(Icons.add),
@@ -1024,7 +905,7 @@ class TimelineRailLayout extends StatelessWidget {
                 const SizedBox(height: 12),
                 CountdownDisplay(
                   seconds: data.countdown,
-                  textStyle: GoogleFonts.bebasNeue(
+                  textStyle: style.displayFont.copyWith(
                     fontSize: 92,
                     color: textColor,
                     letterSpacing: 2,
@@ -1038,6 +919,7 @@ class TimelineRailLayout extends StatelessWidget {
                     itemBuilder: (context, task, index) {
                       return _TimelineItem(
                         task: task,
+                        style: style,
                         accent: accent,
                         textColor: textColor,
                         muted: muted,
@@ -1050,7 +932,7 @@ class TimelineRailLayout extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text(
                   '進度總覽',
-                  style: GoogleFonts.ibmPlexSans(
+                  style: style.titleFont.copyWith(
                     color: textColor,
                     fontWeight: FontWeight.w700,
                   ),
@@ -1075,6 +957,7 @@ class TimelineRailLayout extends StatelessWidget {
 class _TimelineItem extends StatelessWidget {
   const _TimelineItem({
     required this.task,
+    required this.style,
     required this.accent,
     required this.textColor,
     required this.muted,
@@ -1083,6 +966,7 @@ class _TimelineItem extends StatelessWidget {
   });
 
   final TaskItem task;
+  final PlannerStyle style;
   final Color accent;
   final Color textColor;
   final Color muted;
@@ -1147,7 +1031,7 @@ class _TimelineItem extends StatelessWidget {
               children: [
                 Text(
                   task.title,
-                  style: GoogleFonts.ibmPlexSans(
+                  style: style.titleFont.copyWith(
                     color: textColor,
                     fontWeight: FontWeight.w700,
                     fontSize: 16,
@@ -1156,7 +1040,7 @@ class _TimelineItem extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   '${task.completedCycles}/${task.totalCycles} 輪 · ${task.cycleMinutes} 分鐘',
-                  style: GoogleFonts.ibmPlexSans(
+                  style: style.bodyFont.copyWith(
                     color: muted,
                     fontSize: 12,
                   ),
@@ -1174,7 +1058,7 @@ class _TimelineItem extends StatelessWidget {
                     onPressed: task.isDone ? null : onStart,
                     child: Text(
                       task.isDone ? '已完成' : '開獵',
-                      style: GoogleFonts.ibmPlexSans(
+                      style: style.bodyFont.copyWith(
                         fontWeight: FontWeight.w700,
                         color: accent,
                       ),
@@ -1197,16 +1081,18 @@ class SplitCommandLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = const Color(0xFFF97316);
-    final accent2 = const Color(0xFF38BDF8);
-    final textColor = const Color(0xFFE2E8F0);
-    final muted = const Color(0xFF94A3B8);
+    final style = plannerStyleFor(HuntVariant.splitCommand);
+    final accent = style.accent;
+    final accent2 = style.accentSoft;
+    final textColor = style.textPrimary;
+    final muted = style.textSecondary;
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWide = constraints.maxWidth > 720;
         final panel = _SplitPanel(
           data: data,
+          style: style,
           accent: accent,
           accent2: accent2,
           textColor: textColor,
@@ -1214,6 +1100,7 @@ class SplitCommandLayout extends StatelessWidget {
         );
         final list = _SplitTaskPanel(
           data: data,
+          style: style,
           accent: accent,
           textColor: textColor,
           muted: muted,
@@ -1224,11 +1111,7 @@ class SplitCommandLayout extends StatelessWidget {
             DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    const Color(0xFF0F172A),
-                    const Color(0xFF0B1B2D),
-                    const Color(0xFF1E293B),
-                  ],
+                  colors: style.canvasGradient,
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -1265,6 +1148,7 @@ class SplitCommandLayout extends StatelessWidget {
 class _SplitPanel extends StatelessWidget {
   const _SplitPanel({
     required this.data,
+    required this.style,
     required this.accent,
     required this.accent2,
     required this.textColor,
@@ -1272,6 +1156,7 @@ class _SplitPanel extends StatelessWidget {
   });
 
   final VariantData data;
+  final PlannerStyle style;
   final Color accent;
   final Color accent2;
   final Color textColor;
@@ -1293,7 +1178,7 @@ class _SplitPanel extends StatelessWidget {
             children: [
               Text(
                 'COMMAND',
-                style: GoogleFonts.sora(
+                style: style.titleFont.copyWith(
                   color: textColor,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 1.2,
@@ -1314,7 +1199,7 @@ class _SplitPanel extends StatelessWidget {
               child: CountdownDisplay(
                 seconds: data.countdown,
                 glowColor: accent2,
-                textStyle: GoogleFonts.sora(
+                textStyle: style.displayFont.copyWith(
                   color: textColor,
                   fontSize: 84,
                   fontWeight: FontWeight.w700,
@@ -1330,7 +1215,7 @@ class _SplitPanel extends StatelessWidget {
                 size: 78,
                 trackColor: Colors.white.withValues(alpha: 0.12),
                 progressColor: accent2,
-                textStyle: GoogleFonts.sora(
+                textStyle: style.bodyFont.copyWith(
                   color: textColor,
                   fontWeight: FontWeight.w700,
                   fontSize: 12,
@@ -1340,7 +1225,7 @@ class _SplitPanel extends StatelessWidget {
               Expanded(
                 child: Text(
                   '總進度 ${data.daily.completedCycles}/${data.daily.totalCycles} 輪',
-                  style: GoogleFonts.sora(
+                  style: style.bodyFont.copyWith(
                     color: muted,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -1366,12 +1251,14 @@ class _SplitPanel extends StatelessWidget {
 class _SplitTaskPanel extends StatelessWidget {
   const _SplitTaskPanel({
     required this.data,
+    required this.style,
     required this.accent,
     required this.textColor,
     required this.muted,
   });
 
   final VariantData data;
+  final PlannerStyle style;
   final Color accent;
   final Color textColor;
   final Color muted;
@@ -1390,7 +1277,7 @@ class _SplitTaskPanel extends StatelessWidget {
         children: [
           Text(
             '任務佇列',
-            style: GoogleFonts.sora(
+            style: style.titleFont.copyWith(
               color: textColor,
               fontWeight: FontWeight.w700,
               fontSize: 16,
@@ -1409,18 +1296,17 @@ class _SplitTaskPanel extends StatelessWidget {
                   border: accent.withValues(alpha: 0.3),
                   textColor: textColor,
                   subTextColor: muted,
-                  titleStyle: GoogleFonts.sora(
+                  titleStyle: style.titleFont.copyWith(
                     color: textColor,
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                   ),
-                  metaStyle: GoogleFonts.sora(
+                  metaStyle: style.bodyFont.copyWith(
                     color: muted,
                     fontSize: 12,
                   ),
-                  buttonStyle: GoogleFonts.sora(
-                    fontWeight: FontWeight.w700,
-                  ),
+                  buttonStyle:
+                      style.bodyFont.copyWith(fontWeight: FontWeight.w700),
                   dense: true,
                 );
               },
@@ -1439,14 +1325,21 @@ class MonoStrikeLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = const Color(0xFF00FF7F);
-    final textColor = const Color(0xFFF8FAFC);
-    final muted = const Color(0xFF94A3B8);
+    final style = plannerStyleFor(HuntVariant.monoStrike);
+    final accent = style.accent;
+    final textColor = style.textPrimary;
+    final muted = style.textSecondary;
 
     return Stack(
       children: [
         DecoratedBox(
-          decoration: const BoxDecoration(color: Color(0xFF020617)),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: style.canvasGradient,
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
           child: const SizedBox.expand(),
         ),
         GridBackdrop(color: accent),
@@ -1460,7 +1353,7 @@ class MonoStrikeLayout extends StatelessWidget {
                   children: [
                     Text(
                       'MONO STRIKE',
-                      style: GoogleFonts.spaceMono(
+                      style: style.titleFont.copyWith(
                         color: textColor,
                         fontWeight: FontWeight.w700,
                       ),
@@ -1487,7 +1380,7 @@ class MonoStrikeLayout extends StatelessWidget {
                     child: CountdownDisplay(
                       seconds: data.countdown,
                       glowColor: accent,
-                      textStyle: GoogleFonts.spaceMono(
+                      textStyle: style.displayFont.copyWith(
                         fontSize: 88,
                         color: textColor,
                         fontWeight: FontWeight.w700,
@@ -1498,7 +1391,7 @@ class MonoStrikeLayout extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   '今日進度 ${data.daily.completedCycles}/${data.daily.totalCycles} 輪',
-                  style: GoogleFonts.spaceMono(
+                  style: style.bodyFont.copyWith(
                     color: muted,
                     fontSize: 12,
                   ),
@@ -1531,7 +1424,7 @@ class MonoStrikeLayout extends StatelessWidget {
                           children: [
                             Text(
                               task.title,
-                              style: GoogleFonts.spaceMono(
+                              style: style.titleFont.copyWith(
                                 color: textColor,
                                 fontWeight: FontWeight.w700,
                                 fontSize: 14,
@@ -1551,7 +1444,7 @@ class MonoStrikeLayout extends StatelessWidget {
                                 const SizedBox(width: 10),
                                 Text(
                                   '${task.completedCycles}/${task.totalCycles}',
-                                  style: GoogleFonts.spaceMono(
+                                  style: style.bodyFont.copyWith(
                                     color: muted,
                                     fontSize: 11,
                                   ),
@@ -1566,7 +1459,7 @@ class MonoStrikeLayout extends StatelessWidget {
                                     : () => data.onStartTask(task),
                                 child: Text(
                                   task.isDone ? '已完成' : '開獵',
-                                  style: GoogleFonts.spaceMono(
+                                  style: style.bodyFont.copyWith(
                                     color: accent,
                                     fontWeight: FontWeight.w700,
                                     fontSize: 12,
@@ -1596,17 +1489,18 @@ class StellarHuntLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = const Color(0xFF7EE8FA);
-    final accent2 = const Color(0xFF39FF14);
-    final textColor = const Color(0xFFE2F1FF);
-    final muted = const Color(0xFF91A3B5);
+    final style = plannerStyleFor(HuntVariant.stellarHunt);
+    final accent = style.accent;
+    final accent2 = style.accentSoft;
+    final textColor = style.textPrimary;
+    final muted = style.textSecondary;
 
     return Stack(
       children: [
         DecoratedBox(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF020617), Color(0xFF0F1C33)],
+              colors: style.canvasGradient,
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -1629,7 +1523,7 @@ class StellarHuntLayout extends StatelessWidget {
                   children: [
                     Text(
                       'STELLAR HUNT',
-                      style: GoogleFonts.orbitron(
+                      style: style.titleFont.copyWith(
                         color: textColor,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 1.2,
@@ -1657,7 +1551,7 @@ class StellarHuntLayout extends StatelessWidget {
                     child: CountdownDisplay(
                       seconds: data.countdown,
                       glowColor: accent2,
-                      textStyle: GoogleFonts.orbitron(
+                      textStyle: style.displayFont.copyWith(
                         fontSize: 84,
                         color: textColor,
                         fontWeight: FontWeight.w700,
@@ -1673,7 +1567,7 @@ class StellarHuntLayout extends StatelessWidget {
                       size: 70,
                       trackColor: Colors.white.withValues(alpha: 0.12),
                       progressColor: accent2,
-                      textStyle: GoogleFonts.orbitron(
+                      textStyle: style.bodyFont.copyWith(
                         color: textColor,
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
@@ -1683,7 +1577,7 @@ class StellarHuntLayout extends StatelessWidget {
                     Expanded(
                       child: Text(
                         '星際進度 ${data.daily.completedCycles} / ${data.daily.totalCycles} 輪',
-                        style: GoogleFonts.spaceGrotesk(
+                        style: style.bodyFont.copyWith(
                           color: muted,
                           fontSize: 12,
                         ),
@@ -1712,18 +1606,17 @@ class StellarHuntLayout extends StatelessWidget {
                         border: accent.withValues(alpha: 0.3),
                         textColor: textColor,
                         subTextColor: muted,
-                        titleStyle: GoogleFonts.spaceGrotesk(
+                        titleStyle: style.titleFont.copyWith(
                           color: textColor,
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                         ),
-                        metaStyle: GoogleFonts.spaceGrotesk(
+                        metaStyle: style.bodyFont.copyWith(
                           color: muted,
                           fontSize: 12,
                         ),
-                        buttonStyle: GoogleFonts.spaceGrotesk(
-                          fontWeight: FontWeight.w700,
-                        ),
+                        buttonStyle:
+                            style.bodyFont.copyWith(fontWeight: FontWeight.w700),
                       );
                     },
                   ),
@@ -1744,17 +1637,18 @@ class ArcadeBoardLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = const Color(0xFF00F5FF);
-    final accent2 = const Color(0xFF39FF14);
-    final textColor = const Color(0xFFF8FAFC);
-    final muted = const Color(0xFF9CA3AF);
+    final style = plannerStyleFor(HuntVariant.arcadeBoard);
+    final accent = style.accent;
+    final accent2 = style.accentSoft;
+    final textColor = style.textPrimary;
+    final muted = style.textSecondary;
 
     return Stack(
       children: [
         DecoratedBox(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF0B0F14), Color(0xFF0B1220)],
+              colors: style.canvasGradient,
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -1776,7 +1670,7 @@ class ArcadeBoardLayout extends StatelessWidget {
                   children: [
                     Text(
                       'ARCADE MODE',
-                      style: GoogleFonts.pressStart2p(
+                      style: style.titleFont.copyWith(
                         color: accent,
                         fontSize: 10,
                       ),
@@ -1795,24 +1689,24 @@ class ArcadeBoardLayout extends StatelessWidget {
                 Expanded(
                   flex: 2,
                   child: Center(
-                    child: CountdownDisplay(
-                      seconds: data.countdown,
-                      glowColor: accent2,
-                      textStyle: GoogleFonts.rubikMonoOne(
-                        color: textColor,
-                        fontSize: 74,
-                      ),
+                  child: CountdownDisplay(
+                    seconds: data.countdown,
+                    glowColor: accent2,
+                    textStyle: style.displayFont.copyWith(
+                      color: textColor,
+                      fontSize: 74,
                     ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'XP 進度',
-                  style: GoogleFonts.pressStart2p(
-                    color: muted,
-                    fontSize: 10,
-                  ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'XP 進度',
+                style: style.bodyFont.copyWith(
+                  color: muted,
+                  fontSize: 10,
                 ),
+              ),
                 const SizedBox(height: 6),
                 XpBarOverview(
                   value: data.daily.completionRatio,
@@ -1849,7 +1743,7 @@ class ArcadeBoardLayout extends StatelessWidget {
                               ),
                               child: Text(
                                 '${index + 1}',
-                                style: GoogleFonts.pressStart2p(
+                                style: style.bodyFont.copyWith(
                                   color: accent,
                                   fontSize: 10,
                                 ),
@@ -1862,7 +1756,7 @@ class ArcadeBoardLayout extends StatelessWidget {
                                 children: [
                                   Text(
                                     task.title,
-                                    style: GoogleFonts.pressStart2p(
+                                    style: style.bodyFont.copyWith(
                                       color: textColor,
                                       fontSize: 10,
                                     ),
@@ -1884,7 +1778,7 @@ class ArcadeBoardLayout extends StatelessWidget {
                                   : () => data.onStartTask(task),
                               child: Text(
                                 task.isDone ? '完成' : 'START',
-                                style: GoogleFonts.pressStart2p(
+                                style: style.bodyFont.copyWith(
                                   color: accent2,
                                   fontSize: 8,
                                 ),
@@ -1932,10 +1826,11 @@ class OrbitCommandLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = const Color(0xFF22D3EE);
-    final accent2 = const Color(0xFFFCD34D);
-    final textColor = const Color(0xFFE2E8F0);
-    final muted = const Color(0xFF94A3B8);
+    final style = plannerStyleFor(HuntVariant.orbitCommand);
+    final accent = style.accent;
+    final accent2 = style.accentSoft;
+    final textColor = style.textPrimary;
+    final muted = style.textSecondary;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -1953,7 +1848,7 @@ class OrbitCommandLayout extends StatelessWidget {
             CountdownDisplay(
               seconds: data.countdown,
               glowColor: accent,
-              textStyle: GoogleFonts.exo2(
+              textStyle: style.displayFont.copyWith(
                 fontSize: 72,
                 color: textColor,
                 fontWeight: FontWeight.w700,
@@ -1976,7 +1871,7 @@ class OrbitCommandLayout extends StatelessWidget {
                 children: [
                   Text(
                     '任務軌道',
-                    style: GoogleFonts.exo2(
+                    style: style.titleFont.copyWith(
                       color: textColor,
                       fontWeight: FontWeight.w700,
                       fontSize: 16,
@@ -2003,18 +1898,17 @@ class OrbitCommandLayout extends StatelessWidget {
                       border: accent.withValues(alpha: 0.25),
                       textColor: textColor,
                       subTextColor: muted,
-                      titleStyle: GoogleFonts.exo2(
+                      titleStyle: style.titleFont.copyWith(
                         color: textColor,
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                       ),
-                      metaStyle: GoogleFonts.exo2(
+                      metaStyle: style.bodyFont.copyWith(
                         color: muted,
                         fontSize: 12,
                       ),
-                      buttonStyle: GoogleFonts.exo2(
-                        fontWeight: FontWeight.w700,
-                      ),
+                      buttonStyle:
+                          style.bodyFont.copyWith(fontWeight: FontWeight.w700),
                       dense: true,
                     );
                   },
@@ -2027,9 +1921,9 @@ class OrbitCommandLayout extends StatelessWidget {
         return Stack(
           children: [
             DecoratedBox(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Color(0xFF0B1220), Color(0xFF0B1A2A)],
+                  colors: style.canvasGradient,
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
@@ -2045,7 +1939,7 @@ class OrbitCommandLayout extends StatelessWidget {
                       children: [
                         Text(
                           'ORBIT COMMAND',
-                          style: GoogleFonts.exo2(
+                          style: style.titleFont.copyWith(
                             color: textColor,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 1.2,
@@ -2096,17 +1990,18 @@ class AuroraGlassLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = const Color(0xFF22C55E);
-    final accent2 = const Color(0xFF0EA5E9);
-    final textColor = const Color(0xFFF8FAFC);
-    final muted = const Color(0xFFCBD5F5);
+    final style = plannerStyleFor(HuntVariant.auroraGlass);
+    final accent = style.accent;
+    final accent2 = style.accentSoft;
+    final textColor = style.textPrimary;
+    final muted = style.textSecondary;
 
     return Stack(
       children: [
         DecoratedBox(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF0EA5E9), Color(0xFF22C55E)],
+              colors: style.canvasGradient,
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -2133,7 +2028,7 @@ class AuroraGlassLayout extends StatelessWidget {
                   children: [
                     Text(
                       'AURORA GLASS',
-                      style: GoogleFonts.manrope(
+                      style: style.titleFont.copyWith(
                         color: textColor,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 1.2,
@@ -2161,7 +2056,7 @@ class AuroraGlassLayout extends StatelessWidget {
                     child: CountdownDisplay(
                       seconds: data.countdown,
                       glowColor: textColor,
-                      textStyle: GoogleFonts.spaceGrotesk(
+                      textStyle: style.displayFont.copyWith(
                         fontSize: 82,
                         color: textColor,
                         fontWeight: FontWeight.w700,
@@ -2177,7 +2072,7 @@ class AuroraGlassLayout extends StatelessWidget {
                       size: 68,
                       trackColor: Colors.white.withValues(alpha: 0.18),
                       progressColor: textColor,
-                      textStyle: GoogleFonts.manrope(
+                      textStyle: style.bodyFont.copyWith(
                         color: textColor,
                         fontWeight: FontWeight.w700,
                         fontSize: 12,
@@ -2187,7 +2082,7 @@ class AuroraGlassLayout extends StatelessWidget {
                     Expanded(
                       child: Text(
                         '總進度 ${data.daily.completedCycles}/${data.daily.totalCycles} 輪',
-                        style: GoogleFonts.manrope(
+                        style: style.bodyFont.copyWith(
                           color: muted,
                           fontWeight: FontWeight.w600,
                           fontSize: 12,
@@ -2217,18 +2112,17 @@ class AuroraGlassLayout extends StatelessWidget {
                         border: Colors.white.withValues(alpha: 0.35),
                         textColor: textColor,
                         subTextColor: muted,
-                        titleStyle: GoogleFonts.manrope(
+                        titleStyle: style.titleFont.copyWith(
                           color: textColor,
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                         ),
-                        metaStyle: GoogleFonts.manrope(
+                        metaStyle: style.bodyFont.copyWith(
                           color: muted,
                           fontSize: 12,
                         ),
-                        buttonStyle: GoogleFonts.manrope(
-                          fontWeight: FontWeight.w700,
-                        ),
+                        buttonStyle:
+                            style.bodyFont.copyWith(fontWeight: FontWeight.w700),
                       );
                     },
                   ),
